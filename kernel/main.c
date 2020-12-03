@@ -9,9 +9,14 @@ extern char edata[];
 extern char sbss[];
 extern char ebss[];
 
+void clean_bss() {
+    char* p;
+    for(p = sbss; p < ebss; ++p)
+        *p = 0;
+}
+
 void main() {
-    consoleinit();
-    printfinit();
+    clean_bss();
     printf("\n");
     printf("hello wrold!\n");
     printf("stext: %p\n", stext);
@@ -23,5 +28,5 @@ void main() {
     printf("sbss : %p\n", sbss);
     printf("ebss : %p\n", ebss);
     printf("\n");
-    for(;;);
+    loop();
 }

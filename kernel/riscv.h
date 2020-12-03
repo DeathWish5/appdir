@@ -1,4 +1,4 @@
-#include "types.h"
+#include "defs.h"
 
 // which hart (core) is this?
 static inline uint64 r_mhartid() {

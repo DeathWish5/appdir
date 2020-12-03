@@ -1,8 +1,12 @@
-.section .text
+    .section .text
+    .globl _entry
 _entry:
-    la sp, stack0
-    li a0, 1024*4
-    add sp, sp, a0
-    call start
-spin:
-    j spin
+    la sp, boot_stack
+    call main
+
+    .section .bss.stack
+    .globl boot_stack
+boot_stack:
+    .space 4096 * 16
+    .globl boot_stack_top
+boot_stack_top:

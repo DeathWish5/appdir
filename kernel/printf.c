@@ -1,13 +1,5 @@
-//
-// formatted console output -- printf, panic.
-//
-
-#include <stdarg.h>
 #include "defs.h"
-#include "types.h"
-
-volatile int panicked = 0;
-
+#include <stdarg.h>
 static char digits[] = "0123456789abcdef";
 
 static void
@@ -88,15 +80,11 @@ void printf(char *fmt, ...) {
     }
 }
 
-void panic(char *s) {
+void
+panic(char *s)
+{
     printf("panic: ");
     printf(s);
     printf("\n");
-    panicked = 1;// freeze uart output from other CPUs
-    for (;;)
-        ;
-}
-
-void printfinit(void) {
-    // do nothing
+    loop();
 }

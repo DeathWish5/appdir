@@ -1,13 +1,8 @@
 K=kernel
 U=user
 
-OBJS = \
-  $K/entry.o \
-  $K/start.o \
-  $K/console.o \
-  $K/printf.o \
-  $K/uart.o \
-  $K/main.o \
+SRCS = $(wildcard $K/*.S $K/*.c)
+OBJS = $(addsuffix .o, $(basename $(SRCS)))
 
 # Try to infer the correct TOOLPREFIX if not set
 TOOLPREFIX = riscv64-unknown-elf-
@@ -44,8 +39,14 @@ ifndef CPUS
 CPUS := 1
 endif
 
+# BOARD
+BOARD		?= qemu
+SBI			?= rustsbi
+BOOTLOADER	:= bootloader/$(SBI)-$(BOARD).bin
+
 QEMU = qemu-system-riscv64
-QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) -nographic
+QEMUOPTS += -machine virt -bios $(BOOTLOADER) -m 1G -smp $(CPUS) -nographic
+QEMUOPTS += -device loader,file=$K/kernel,addr=0x80020000
 
 run: $K/kernel
 	$(QEMU) $(QEMUOPTS)

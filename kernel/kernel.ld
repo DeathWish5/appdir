@@ -1,48 +1,45 @@
-OUTPUT_ARCH( "riscv" )
-ENTRY( _entry )
+OUTPUT_ARCH(riscv)
+ENTRY(_entry)
+BASE_ADDRESS = 0x80020000;
 
 SECTIONS
 {
-  /*
-   * ensure that entry.S / _entry is at 0x80000000,
-   * where qemu's -kernel jumps.
-   */
-  . = 0x80000000;
+    . = BASE_ADDRESS;
+    skernel = .;
 
-  stext = .;
-  .text : {
-    *(.text .text.*)
-    . = ALIGN(0x1000);
+    stext = .;
+    .text : {
+        *(.text.entry)
+        *(.text .text.*)
+    }
+
+    . = ALIGN(4K);
     etext = .;
-  }
+    srodata = .;
+    .rodata : {
+        *(.rodata .rodata.*)
+    }
 
-  etext = .;
-  srodata = .;
-  .rodata : {
-    . = ALIGN(16);
-    *(.srodata .srodata.*) /* do not need to distinguish this from .rodata */
-    . = ALIGN(16);
-    *(.rodata .rodata.*)
-  }
+    . = ALIGN(4K);
+    erodata = .;
+    sdata = .;
+    .data : {
+        *(.data .data.*)
+    }
 
-  erodata = .;
-  sdata = .;
-  .data : {
-    . = ALIGN(16);
-    *(.sdata .sdata.*) /* do not need to distinguish this from .data */
-    . = ALIGN(16);
-    *(.data .data.*)
-  }
+    . = ALIGN(4K);
+    edata = .;
+    .bss : {
+        *(.bss.stack)
+        sbss = .;
+        *(.bss .bss.*)
+    }
 
-  edata = .;
-  sbss = .;
-  .bss : {
-    . = ALIGN(16);
-    *(.sbss .sbss.*) /* do not need to distinguish this from .bss */
-    . = ALIGN(16);
-    *(.bss .bss.*)
-  }
-  ebss = .;
+    . = ALIGN(4K);
+    ebss = .;
+    ekernel = .;
 
-  end = .;
+    /DISCARD/ : {
+        *(.eh_frame)
+    }
 }
