@@ -1,13 +1,14 @@
-typedef unsigned int   uint;
+typedef unsigned int uint;
 typedef unsigned short ushort;
-typedef unsigned char  uchar;
+typedef unsigned char uchar;
 typedef unsigned char uint8;
 typedef unsigned short uint16;
-typedef unsigned int  uint32;
+typedef unsigned int uint32;
 typedef unsigned long uint64;
 
 // panic.c
 void loop();
+void panic(char *);
 
 // sbi.c
 void console_putchar(int);
@@ -20,8 +21,25 @@ void consputc(int);
 
 // printf.c
 void printf(char *, ...);
-void printfinit(void);
-void panic(char*);
+
+// trap.c
+void trapinit();
+
+// string.c
+int memcmp(const void *, const void *, uint);
+void *memmove(void *, const void *, uint);
+void *memset(void *, int, uint);
+char *safestrcpy(char *, const char *, int);
+int strlen(const char *);
+int strncmp(const char *, const char *, uint);
+char *strncpy(char *, const char *, int);
+
+// syscall.c
+void syscall();
+
+// batch.c
+void batchinit();
+int run_next_app();
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x) / sizeof((x)[0]))

@@ -1,8 +1,9 @@
-K=kernel
-U=user
+K=.
 
 SRCS = $(wildcard $K/*.S $K/*.c)
-OBJS = $(addsuffix .o, $(basename $(SRCS)))
+OBJS = $(addsuffix .o, $(basename $(SRCS)))  $K/link_app.o
+
+PY = python3
 
 # Try to infer the correct TOOLPREFIX if not set
 TOOLPREFIX = riscv64-unknown-elf-
@@ -29,11 +30,17 @@ endif
 
 LDFLAGS = -z max-page-size=4096
 
-$K/kernel: $(OBJS) $K/kernel.ld
+link_app.o: link_app.S
+link_app.S: pack.py
+	@$(PY) pack.py
+
+$K/kernel: $(OBJS) $K/kernel.ld link_app.S
 	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS)
+	$(OBJDUMP) -S $K/kernel > $K/kernel.asm
+	$(OBJDUMP) -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
 
 clean: 
-	rm -f */*.o */*.d $K/kernel
+	@rm -f *.o *.d *.sym *.asm $K/kernel $K/link_app.S
 
 ifndef CPUS
 CPUS := 1
@@ -42,13 +49,16 @@ endif
 # BOARD
 BOARD		?= qemu
 SBI			?= rustsbi
-BOOTLOADER	:= bootloader/$(SBI)-$(BOARD).bin
+BOOTLOADER	:= ../bootloader/$(SBI)-$(BOARD).bin
 
 QEMU = qemu-system-riscv64
-QEMUOPTS += -machine virt -bios $(BOOTLOADER) -m 1G -smp $(CPUS) -nographic
-QEMUOPTS += -device loader,file=$K/kernel,addr=0x80020000
+QEMUOPTS = \
+	-nographic \
+	-smp $(CPUS) \
+	-machine virt \
+	-bios $(BOOTLOADER) \
+	-m 1G \
+	-device loader,addr=0x80200000,file=$K/kernel
 
 run: $K/kernel
 	$(QEMU) $(QEMUOPTS)
-
-

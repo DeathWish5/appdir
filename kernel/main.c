@@ -15,10 +15,8 @@ void clean_bss() {
         *p = 0;
 }
 
-void main() {
-    clean_bss();
+void show_memory_layout() {
     printf("\n");
-    printf("hello wrold!\n");
     printf("stext: %p\n", stext);
     printf("etext: %p\n", etext);
     printf("sroda: %p\n", srodata);
@@ -28,5 +26,12 @@ void main() {
     printf("sbss : %p\n", sbss);
     printf("ebss : %p\n", ebss);
     printf("\n");
-    loop();
+}
+
+void main() {
+    clean_bss();
+    printf("hello wrold!\n");
+    trapinit();
+    batchinit();
+    run_next_app();
 }

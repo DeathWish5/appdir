@@ -2,8 +2,7 @@
 #include <stdarg.h>
 static char digits[] = "0123456789abcdef";
 
-static void
-printint(int xx, int base, int sign) {
+static void printint(int xx, int base, int sign) {
     char buf[16];
     int i;
     uint x;
@@ -25,8 +24,7 @@ printint(int xx, int base, int sign) {
         consputc(buf[i]);
 }
 
-static void
-printptr(uint64 x) {
+static void printptr(uint64 x) {
     int i;
     consputc('0');
     consputc('x');
@@ -78,13 +76,4 @@ void printf(char *fmt, ...) {
                 break;
         }
     }
-}
-
-void
-panic(char *s)
-{
-    printf("panic: ");
-    printf(s);
-    printf("\n");
-    loop();
 }
