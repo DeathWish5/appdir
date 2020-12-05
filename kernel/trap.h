@@ -54,5 +54,3 @@ enum Exception {
     StorePageFault,
     Unknown,
 };
-
-void usertrapret(struct trapframe* trapframe, uint64 kstack);

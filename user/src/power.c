@@ -1,11 +1,13 @@
 #include <stdio.h>
-
-unsigned long long hash(unsigned long long n) {
-    n = 6364136223846793005ULL * n + 1;
-    return n >> 33;
-}
+#include <unistd.h>
 
 int main() {
-    printf("hash = %lld", hash(hash(hash(hash(hash(233333ULL))))));
+    puts("power!");
+    puts("power!");
+    sched_yield();
+    puts("power!");
+    sched_yield();
+    puts("power!");
+    sched_yield();
     return 0;
 }

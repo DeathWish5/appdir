@@ -30,8 +30,11 @@ void show_memory_layout() {
 
 void main() {
     clean_bss();
-    printf("hello wrold!\n");
+    printf("GOGOGO!\n");
     trapinit();
     batchinit();
-    run_next_app();
+    procinit();
+    run_all_app();
+    printf("start scheduler!\n");
+    scheduler();
 }
