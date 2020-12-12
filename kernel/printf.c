@@ -2,6 +2,14 @@
 #include <stdarg.h>
 static char digits[] = "0123456789abcdef";
 
+
+static void puts(char* str) {
+    int len = MIN(strlen(str), 50);
+    for(int i = 0; i < len; ++i) {
+        consputc(str[i]);
+    }
+}
+
 static void printint(int xx, int base, int sign) {
     char buf[16];
     int i;
@@ -40,6 +48,8 @@ void printf(char *fmt, ...) {
 
     if (fmt == 0)
         panic("null fmt");
+
+    puts("[kernel]");
 
     va_start(ap, fmt);
     for (i = 0; (c = fmt[i] & 0xff) != 0; i++) {

@@ -2,11 +2,11 @@
 #include <unistd.h>
 
 int main() {
-    puts("hello wrold!");
+    puts("hello wrold!\n");
     sched_yield();
-    puts("hello world!");
-    puts("hello world!");
+    puts("hello world!\n");
+    puts("hello world!\n");
     sched_yield();
-    puts("hello world!");
+    puts("hello world!\n");
     return 0;
 }

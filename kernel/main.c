@@ -15,25 +15,16 @@ void clean_bss() {
         *p = 0;
 }
 
-void show_memory_layout() {
-    printf("\n");
-    printf("stext: %p\n", stext);
-    printf("etext: %p\n", etext);
-    printf("sroda: %p\n", srodata);
-    printf("eroda: %p\n", erodata);
-    printf("sdata: %p\n", sdata);
-    printf("edata: %p\n", edata);
-    printf("sbss : %p\n", sbss);
-    printf("ebss : %p\n", ebss);
-    printf("\n");
-}
-
 void main() {
     clean_bss();
     printf("GOGOGO!\n");
     trapinit();
+    kinit();
+    kvminit();
+    kvminithart();
     batchinit();
     procinit();
+    timerinit();
     run_all_app();
     printf("start scheduler!\n");
     scheduler();

@@ -4,6 +4,13 @@ project(user)
 enable_language(ASM)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "")
 
+# Path
+if (${ARCH} STREQUAL riscv32 OR ${ARCH} STREQUAL riscv64)
+    set(ARCH_DIR lib/arch/riscv)
+else()
+    set(ARCH_DIR lib/arch/${ARCH})
+endif()
+
 # Toolchain
 set(PREFIX ${ARCH}-linux-musl-)
 
@@ -14,6 +21,7 @@ elseif (${ARCH} STREQUAL riscv64)
 else()
     message("Unsupported arch: ${ARCH}")
 endif ()
+
 set(CMAKE_ASM_COMPILER      ${PREFIX}gcc)
 set(CMAKE_C_COMPILER        ${PREFIX}gcc)
 set(CMAKE_RANLIB            ${PREFIX}ranlib)
@@ -21,13 +29,7 @@ set(CMAKE_C_FLAGS           "${CMAKE_C_FLAGS} -fno-builtin -nostdinc -fno-stack-
 set(CMAKE_ASM_FLAGS         ${CMAKE_C_FLAGS})
 set(CMAKE_C_LINK_FLAGS      "${LINK_FLAGS} -nostdlib")  # override default value to get rid of '-Wl,-search_paths_first -Wl,-headerpad_max_install_names'
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)                  # override default value to get rid of '-rdynamic' on Linux
-
-# Path
-if (${ARCH} STREQUAL riscv32 OR ${ARCH} STREQUAL riscv64)
-    set(ARCH_DIR lib/arch/riscv)
-else()
-    set(ARCH_DIR lib/arch/${ARCH})
-endif()
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_C_LINK_FLAGS} -nostdlib -N -T ${CMAKE_CURRENT_SOURCE_DIR}/${ARCH_DIR}/user.ld")
 
 # Library
 aux_source_directory(lib LIBS)

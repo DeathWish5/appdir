@@ -13,7 +13,6 @@
 typedef __builtin_va_list va_list;
 typedef unsigned long int uintmax_t;
 typedef long int intmax_t;
-int putchar(int);
 int puts(const char* s);
 int fprintf(int fd, const char* fmt, ...);
 int printf(const char* fmt, ...);

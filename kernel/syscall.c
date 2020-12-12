@@ -28,11 +28,12 @@ uint64 sys_sched_yield() {
 void syscall() {
     struct trapframe *trapframe = curr_proc()->trapframe;
     int id = trapframe->a7, ret;
-    printf("syscall %d\n", id);
-    uint64 args[6] = {trapframe->a0, trapframe->a1, trapframe->a3, trapframe->a4, trapframe->a5, trapframe->a6};
+    uint64 args[6] = {trapframe->a0, trapframe->a1, trapframe->a2, trapframe->a3, trapframe->a4, trapframe->a5};
+    printf("syscall %d args:%p %p %p %p %p %p\n", id, args[0], args[1], args[2], args[3], args[4], args[5]);
     switch (id) {
         case SYS_write:
             ret = sys_write(args[0], (char *) args[1], args[2]);
+            printf("\n");
             break;
         case SYS_exit:
             ret = sys_exit(args[0]);

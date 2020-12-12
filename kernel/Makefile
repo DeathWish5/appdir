@@ -8,6 +8,7 @@ PY = python3
 # Try to infer the correct TOOLPREFIX if not set
 TOOLPREFIX = riscv64-unknown-elf-
 CC = $(TOOLPREFIX)gcc
+GDB = $(TOOLPREFIX)gdb
 AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
@@ -36,7 +37,7 @@ link_app.S: pack.py
 
 $K/kernel: $(OBJS) $K/kernel.ld link_app.S
 	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS)
-	$(OBJDUMP) -S $K/kernel > $K/kernel.asm
+	$(OBJDUMP) -d $K/kernel > $K/kernel.asm
 	$(OBJDUMP) -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
 
 clean: 
@@ -57,8 +58,26 @@ QEMUOPTS = \
 	-smp $(CPUS) \
 	-machine virt \
 	-bios $(BOOTLOADER) \
-	-m 1G \
-	-device loader,addr=0x80200000,file=$K/kernel
+	-device loader,addr=0x80020000,file=$K/kernel
 
 run: $K/kernel
 	$(QEMU) $(QEMUOPTS)
+
+# try to generate a unique GDB port
+GDBPORT = $(shell expr `id -u` % 5000 + 25000)
+# QEMU's gdb stub command line changed in 0.11
+QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
+	then echo "-gdb tcp::$(GDBPORT)"; \
+	else echo "-s -p $(GDBPORT)"; fi)
+
+.gdbinit: .gdbinit.impl-riscv
+	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
+
+qemu-gdb: $K/kernel .gdbinit fs.img
+	@echo "*** Now run 'gdb' in another window." 1>&2
+	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
+
+debug: $K/kernel .gdbinit
+	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB) &
+	sleep 1
+	$(GDB)

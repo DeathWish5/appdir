@@ -12,17 +12,17 @@ endif
 
 OBJCOPY := $(ARCH)-linux-musl-objcopy
 OBJDUMP := $(ARCH)-linux-musl-objdump
+CP := cp
 
 elf:
 	@mkdir -p build
 	@cd build && cmake $(cmake_build_args) .. && make -j
-	@$(foreach elf, $(wildcard build/$(ARCH)/*), $(OBJDUMP) $(elf) -S -d > $(patsubst build/$(ARCH)/%, %.S, $(elf));)
+	@mkdir -p asm
+	@$(foreach elf, $(wildcard build/$(ARCH)/*), $(OBJDUMP) $(elf) -S -d > $(patsubst build/$(ARCH)/%, asm/%.asm, $(elf));)
 
 bin: elf
 	@mkdir -p $(out_dir)
-	@$(foreach elf, $(wildcard build/$(ARCH)/*), $(OBJCOPY) $(elf) -S -O binary $(patsubst build/$(ARCH)/%, $(out_dir)/%.bin, $(elf));)
+	@$(foreach elf, $(wildcard build/$(ARCH)/*), $(OBJCOPY) $(elf) --strip-all -O binary $(patsubst build/$(ARCH)/%, $(out_dir)/%.bin, $(elf));)
 
 clean:
-	@rm -rf build target
-
-.PHONY: build clean c
+	@rm -rf build target asm

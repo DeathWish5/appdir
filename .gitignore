@@ -7,3 +7,5 @@ user/target/
 link_app.S
 *.o
 *.d
+*.asm
+*.sym

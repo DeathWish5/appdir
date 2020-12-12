@@ -30,17 +30,9 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-int putchar(int c)
-{
-    char byte = c;
-    return write(stdout, &byte, 1);
-}
-
 int puts(const char* s)
 {
-    int r;
-    r = -(write(stdout, s, strlen(s)) < 0 || putchar('\n') < 0);
-    return r;
+    return write(stdout, s, strlen(s));
 }
 
 enum {
