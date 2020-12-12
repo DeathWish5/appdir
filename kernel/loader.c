@@ -6,9 +6,10 @@
 
 static int app_cur, app_num;
 static uint64 *app_info_ptr;
-extern char _app_num[];
-
+extern char _app_num[], _app_names[];
 int fin = 0;
+
+char names[10][100];
 
 int finished() {
     ++fin;
@@ -18,38 +19,61 @@ int finished() {
 }
 
 void batchinit() {
+    char* s;
     app_info_ptr = (uint64 *) _app_num;
     app_cur = -1;
     app_num = *app_info_ptr;
+    app_info_ptr++;
+
+    s = _app_names;
+    for(int i = 0; i < app_num; ++i) {
+        int len = strlen(s);
+        strncpy(names[i], (const char*)s, len);
+        s += len + 1;
+        printf("new name: %s\n", names[i]);
+    }
 }
 
-pagetable_t bin_loader(uint64 start, uint64 end, struct proc *p) {
-    pagetable_t pg = uvmcreate();
-    p->trapframe = (struct trapframe*)kalloc();
-    memset(p->trapframe, 0, PGSIZE);
-    if (mappages(pg, TRAPFRAME, PGSIZE,
-                 (uint64)p->trapframe, PTE_R | PTE_W) < 0) {
-        panic("mappages fail\n");
+int get_id_by_name(char* name) {
+    for(int i = 0; i < app_num; ++i) {
+        if(strncmp(name, names[i], 100))
+            return i;
     }
-    uint64 s = PGROUNDDOWN(start), e = PGROUNDUP(end);
-    if (mappages(pg, s, e, s, PTE_U | PTE_R | PTE_W | PTE_X) != 0) {
-        panic("wrong loader 1\n");
+    return -1;
+}
+
+void bin_loader(uint64 start, uint64 end, struct proc *p) {
+    uint64 s = PGROUNDDOWN(start), e = PGROUNDUP(end), range = e - s;
+    printf("range : [%p, %p] start = %p\n", s, e, start);
+    for(uint64 cur = s; cur < e; cur += PGSIZE) {
+        void* page = kalloc();
+        if(page == 0) {
+            panic("");
+        }
+        memmove(page, (const void*)cur, PGSIZE);
+        if (mappages(p->pagetable, p->sz, PGSIZE, (uint64)page, PTE_U | PTE_R | PTE_W | PTE_X) != 0) {
+            panic("mappages\n");
+        }
+        p->sz += PGSIZE;
     }
-    p->pagetable = pg;
-    p->trapframe->epc = start;
-    mappages(pg, 0, USTACK_SIZE, (uint64) kalloc(), PTE_U | PTE_R | PTE_W | PTE_X);
-    p->ustack = 0;
+    p->offset = s;
+    p->trapframe->epc = start - p->offset;
+    mappages(p->pagetable, range, USTACK_SIZE, (uint64) kalloc(), PTE_U | PTE_R | PTE_W | PTE_X);
+    p->ustack = range;
     p->trapframe->sp = p->ustack + USTACK_SIZE;
-    return pg;
+}
+
+void loader(int id, void* p) {
+    bin_loader(app_info_ptr[id], app_info_ptr[id+1], p);
 }
 
 int run_all_app() {
     for (int i = 0; i < app_num; ++i) {
         app_cur++;
-        app_info_ptr++;
         struct proc *p = allocproc();
+        p->parent = 0;
         printf("run app %d\n", app_cur);
-        bin_loader(app_info_ptr[0], app_info_ptr[1], p);
+        loader(i, p);
         p->state = RUNNABLE;
     }
     return 0;

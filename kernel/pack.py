@@ -20,6 +20,15 @@ _app_num:
         f.write('    .quad app_{}_start\n'.format(idx))
     f.write('    .quad app_{}_end\n'.format(len(apps) - 1))
 
+    f.write(
+'''
+    .global _app_names
+_app_names:
+''');
+
+    for app in apps:
+        f.write("   .string \"" + app + "\"\n")
+
     for (idx, app) in enumerate(apps):
         f.write(
 '''

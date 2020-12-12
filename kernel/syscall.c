@@ -25,14 +25,19 @@ uint64 sys_sched_yield() {
     return 0;
 }
 
+uint64 sys_getpid() {
+    return curr_proc()->pid;
+}
+
 void syscall() {
-    struct trapframe *trapframe = curr_proc()->trapframe;
+    struct proc *p = curr_proc();
+    struct trapframe *trapframe = p->trapframe;
     int id = trapframe->a7, ret;
     uint64 args[6] = {trapframe->a0, trapframe->a1, trapframe->a2, trapframe->a3, trapframe->a4, trapframe->a5};
     printf("syscall %d args:%p %p %p %p %p %p\n", id, args[0], args[1], args[2], args[3], args[4], args[5]);
     switch (id) {
         case SYS_write:
-            ret = sys_write(args[0], (char *) args[1], args[2]);
+            ret = sys_write(args[0], (char *) args[1] + p->offset, args[2]);
             printf("\n");
             break;
         case SYS_exit:
@@ -40,6 +45,9 @@ void syscall() {
             break;
         case SYS_sched_yield:
             ret = sys_sched_yield();
+            break;
+        case SYS_getgid:
+            ret = sys_getpid();
             break;
         default:
             ret = -1;

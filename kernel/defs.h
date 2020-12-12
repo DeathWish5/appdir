@@ -53,6 +53,8 @@ void swtch(struct context *, struct context *);
 int finished();
 void batchinit();
 int run_all_app();
+int get_id_by_name(char* name);
+void loader(int, void*);
 
 // proc.c
 struct proc *curr_proc();

@@ -36,4 +36,10 @@ struct proc {
     uint64 kstack;               // Virtual address of kernel stack
     struct trapframe *trapframe; // data page for trampoline.S
     struct context context;      // swtch() here to run process
+
+    uint64 offset;
+    uint64 sz;
+
+    struct proc *parent;         // Parent process
+    uint64 exit_code;
 };
