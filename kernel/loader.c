@@ -43,8 +43,11 @@ int get_id_by_name(char* name) {
 }
 
 void bin_loader(uint64 start, uint64 end, struct proc *p) {
-    uint64 s = PGROUNDDOWN(start), e = PGROUNDUP(end), range = e - s;
+    uint64 s = PGROUNDDOWN(start), e = PGROUNDUP(end);
     printf("range : [%p, %p] start = %p\n", s, e, start);
+    p->offset = p->sz;
+    if(p->offset != 0x1000)
+        panic("offset must be 0x1000\n");
     for(uint64 cur = s; cur < e; cur += PGSIZE) {
         void* page = kalloc();
         if(page == 0) {
@@ -56,10 +59,7 @@ void bin_loader(uint64 start, uint64 end, struct proc *p) {
         }
         p->sz += PGSIZE;
     }
-    p->offset = s;
-    p->trapframe->epc = start - p->offset;
-    mappages(p->pagetable, range, USTACK_SIZE, (uint64) kalloc(), PTE_U | PTE_R | PTE_W | PTE_X);
-    p->ustack = range;
+    p->trapframe->epc = p->offset + start - s;
     p->trapframe->sp = p->ustack + USTACK_SIZE;
 }
 

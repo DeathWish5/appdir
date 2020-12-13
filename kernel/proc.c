@@ -7,6 +7,7 @@
 struct proc pool[NPROC];
 
 __attribute__ ((aligned (16))) char kstack[NPROC][KSTACK_SIZE];
+extern char trampoline[];
 
 extern char boot_stack[];
 struct proc* current_proc;
@@ -45,12 +46,28 @@ proc_pagetable(struct proc *p)
     if(pagetable == 0)
         panic("");
 
+    if(mappages(pagetable, TRAMPOLINE, PGSIZE,
+                (uint64)trampoline, PTE_R | PTE_X) < 0){
+        uvmfree(pagetable, 0);
+        return 0;
+    }
+
+    if((p->trapframe = (struct trapframe *)kalloc()) == 0){
+        panic("kalloc\n");
+    }
+
     // map the trapframe just below TRAMPOLINE, for trampoline.S.
     if(mappages(pagetable, TRAPFRAME, PGSIZE,
                 (uint64)(p->trapframe), PTE_R | PTE_W) < 0){;
         panic("");
     }
 
+    p->ustack = 0;
+    p->sz = USTACK_SIZE;
+    if(mappages(pagetable, p->ustack, USTACK_SIZE,
+                (uint64)kalloc(), PTE_R | PTE_W | PTE_U) < 0){;
+        panic("");
+    }
     return pagetable;
 }
 
@@ -67,12 +84,12 @@ proc_freepagetable(pagetable_t pagetable, uint64 sz)
 static void
 freeproc(struct proc *p)
 {
-//    if(p->trapframe)
-//        kfree((void*)p->trapframe);
-//    p->trapframe = 0;
-//    if(p->pagetable)
-//        proc_freepagetable(p->pagetable, p->sz);
-//    p->pagetable = 0;
+    if(p->trapframe)
+        kfree((void*)p->trapframe);
+    p->trapframe = 0;
+    if(p->pagetable)
+        proc_freepagetable(p->pagetable, p->sz);
+    p->pagetable = 0;
     p->state = UNUSED;
 }
 
@@ -91,9 +108,6 @@ found:
     p->state = USED;
     p->offset = 0;
     // An empty user page table.
-    if((p->trapframe = (struct trapframe *)kalloc()) == 0){
-        panic("kalloc\n");
-    }
     p->pagetable = proc_pagetable(p);
     if(p->pagetable == 0){
         panic("");

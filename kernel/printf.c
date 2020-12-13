@@ -2,7 +2,6 @@
 #include <stdarg.h>
 static char digits[] = "0123456789abcdef";
 
-
 static void puts(char* str) {
     int len = MIN(strlen(str), 50);
     for(int i = 0; i < len; ++i) {

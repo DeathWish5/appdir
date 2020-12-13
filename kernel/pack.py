@@ -32,7 +32,7 @@ _app_names:
     for (idx, app) in enumerate(apps):
         f.write(
 '''
-    .section .text
+    .section .data.apps
     .global app_{0}_start
 app_{0}_start:
     .incbin "{1}"

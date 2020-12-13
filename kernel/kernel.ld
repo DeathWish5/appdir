@@ -27,6 +27,7 @@ SECTIONS
     erodata = .;
     sdata = .;
     .data : {
+        *(.data.apps)
         *(.data .data.*)
     }
 

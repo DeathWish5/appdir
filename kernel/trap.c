@@ -27,7 +27,7 @@ void set_kerneltrap(void) {
 }
 
 void unknown_trap() {
-    printf("unknown trap: %p, stval = %p\n", r_scause(), r_stval());
+    printf("unknown trap: %p, stval = %p sepc = %p\n", r_scause(), r_stval(), r_sepc());
     exit(-1);
 }
 

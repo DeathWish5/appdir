@@ -152,12 +152,6 @@ uvmcreate() {
     if (pagetable == 0)
         return 0;
     memset(pagetable, 0, PGSIZE);
-
-    if(mappages(pagetable, TRAMPOLINE, PGSIZE,
-                (uint64)trampoline, PTE_R | PTE_X) < 0){
-        uvmfree(pagetable, 0);
-        return 0;
-    }
     return pagetable;
 }
 
@@ -203,6 +197,22 @@ uvmdealloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz) {
     }
 
     return newsz;
+}
+
+// Recursively free page-table pages.
+// All leaf mappings must already have been removed.
+void debugwalk(pagetable_t pagetable, int depth) {
+    // there are 2^9 = 512 PTEs in a page table.
+    for (int i = 0; i < 512; i++) {
+        pte_t pte = pagetable[i];
+        if(pte != 0)
+            printf("{%d} pg[%d] = %p\n", depth, i, pte);
+        if ((pte & PTE_V) && (pte & (PTE_R | PTE_W | PTE_X)) == 0) {
+            // this PTE points to a lower-level page table.
+            uint64 child = PTE2PA(pte);
+            debugwalk((pagetable_t) child, depth + 1);
+        }
+    }
 }
 
 // Recursively free page-table pages.

@@ -39,27 +39,27 @@ struct trapframe {
 
 enum {
     InstructionMisaligned = 0,
-    InstructionFault,
-    IllegalInstruction,
-    Breakpoint,
-    LoadMisaligned,
-    LoadFault,
-    StoreMisaligned,
-    StoreFault,
-    UserEnvCall,
+    InstructionFault = 1,
+    IllegalInstruction = 2,
+    Breakpoint = 3,
+    LoadMisaligned = 4,
+    LoadFault = 5,
+    StoreMisaligned = 6,
+    StoreFault = 7,
+    UserEnvCall = 8,
     SupervisorEnvCall,
     MachineEnvCall,
-    InstructionPageFault,
-    LoadPageFault,
-    StorePageFault,
+    InstructionPageFault = 12,
+    LoadPageFault = 13,
+    StorePageFault = 15,
 };
 
 enum Interrupt {
     UserSoft = 0,
-    SupervisorSoft,
+    SupervisorSoft = 1,
     UserTimer = 4,
-    SupervisorTimer,
+    SupervisorTimer = 5,
     UserExternal = 8,
-    SupervisorExternal,
+    SupervisorExternal = 9,
 };
 

@@ -5,9 +5,12 @@
 
 #define min(a, b) a < b ? a : b;
 
-uint64 sys_write(int fd, char *str, uint len) {
+uint64 sys_write(int fd, uint64 va, uint len) {
     if (fd != 0)
         return -1;
+    struct proc *p = curr_proc();
+    char* str = (char*)(walkaddr(p->pagetable, va) | (va & 0xfffULL));
+    printf("str = %p\n", str);
     int size = min(strlen(str), len);
     for(int i = 0; i < size; ++i) {
         console_putchar(str[i]);
@@ -37,7 +40,7 @@ void syscall() {
     printf("syscall %d args:%p %p %p %p %p %p\n", id, args[0], args[1], args[2], args[3], args[4], args[5]);
     switch (id) {
         case SYS_write:
-            ret = sys_write(args[0], (char *) args[1] + p->offset, args[2]);
+            ret = sys_write(args[0], args[1], args[2]);
             printf("\n");
             break;
         case SYS_exit:
