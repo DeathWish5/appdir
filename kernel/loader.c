@@ -31,6 +31,7 @@ void batchinit() {
         strncpy(names[i], (const char*)s, len);
         s += len + 1;
         printf("new name: %s\n", names[i]);
+        trace("new name: %s\n", names[i]);
     }
 }
 
@@ -44,7 +45,7 @@ int get_id_by_name(char* name) {
 
 void bin_loader(uint64 start, uint64 end, struct proc *p) {
     uint64 s = PGROUNDDOWN(start), e = PGROUNDUP(end);
-    printf("range : [%p, %p] start = %p\n", s, e, start);
+    info("range : [%p, %p] start = %p\n", s, e, start);
     p->offset = p->sz;
     if(p->offset != 0x1000)
         panic("offset must be 0x1000\n");
@@ -72,7 +73,7 @@ int run_all_app() {
         app_cur++;
         struct proc *p = allocproc();
         p->parent = 0;
-        printf("run app %d\n", app_cur);
+        info("run app %d\n", app_cur);
         loader(i, p);
         p->state = RUNNABLE;
     }

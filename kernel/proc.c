@@ -10,11 +10,13 @@ __attribute__ ((aligned (16))) char kstack[NPROC][KSTACK_SIZE];
 extern char trampoline[];
 
 extern char boot_stack[];
-struct proc* current_proc;
+struct proc* current_proc = 0;
 struct proc idle;
 
 
 struct proc* curr_proc() {
+    if(current_proc == 0)
+        return &idle;
     return current_proc;
 }
 
@@ -131,7 +133,7 @@ scheduler(void)
             if(p->state == RUNNABLE) {
                 p->state = RUNNING;
                 current_proc = p;
-                printf("switch to next proc\n");
+                info("switch to next proc %d\n", p->pid);
                 swtch(&idle.context, &p->context);
             }
         }
@@ -202,7 +204,7 @@ int exec(char* name) {
 void exit(int code) {
     struct proc *p = curr_proc();
     p->exit_code = code;
-    printf("proc %d exit with %d\n", p->pid, code);
+    info("proc %d exit with %d\n", p->pid, code);
     freeproc(p);
     finished();
     sched();

@@ -1,13 +1,8 @@
 #include "defs.h"
+#include "proc.h"
 #include <stdarg.h>
-static char digits[] = "0123456789abcdef";
 
-static void puts(char* str) {
-    int len = MIN(strlen(str), 50);
-    for(int i = 0; i < len; ++i) {
-        consputc(str[i]);
-    }
-}
+static char digits[] = "0123456789abcdef";
 
 static void printint(int xx, int base, int sign) {
     char buf[16];
@@ -40,15 +35,13 @@ static void printptr(uint64 x) {
 }
 
 // Print to the console. only understands %d, %x, %p, %s.
-void printf(char *fmt, ...) {
+void printf(const char* fmt, ...) {
     va_list ap;
     int i, c;
     char *s;
 
     if (fmt == 0)
         panic("null fmt");
-
-    puts("[kernel]");
 
     va_start(ap, fmt);
     for (i = 0; (c = fmt[i] & 0xff) != 0; i++) {
@@ -85,4 +78,19 @@ void printf(char *fmt, ...) {
                 break;
         }
     }
+    va_end(ap);
 }
+
+int COLOR[] = {
+        [TRACE] = WHITE,
+        [ERROR] = RED,
+        [WARN] = YELLOW,
+        [INFO] = BRIGHT_YOUND,
+};
+
+const char *LEVEL[] = {
+        [TRACE] = "TRACE",
+        [ERROR] = "ERROR",
+        [WARN] = "WARN",
+        [INFO] = "INFO",
+};

@@ -1,3 +1,6 @@
+#ifndef __DEF_H__
+#define __DEF_H__
+
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned char uchar;
@@ -25,8 +28,9 @@ void set_timer(uint64);
 void consoleinit(void);
 void consputc(int);
 
-// printf.c
-void printf(char *, ...);
+// logger.c
+void printf(const char*, ...);
+#include "logger.h"
 
 // trap.c
 void trapinit();
@@ -98,3 +102,5 @@ void set_next_timer();
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x) / sizeof((x)[0]))
+
+#endif

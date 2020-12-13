@@ -182,7 +182,7 @@ size_t strnlen(const char* s, size_t n)
     return p ? p - s : n;
 }
 
-char* stpcpy(char* restrict d, const char* restrict s)
+char* stpcpy(char* restrict d, const char* s)
 {
     typedef size_t __attribute__((__may_alias__)) word;
     word* wd;
@@ -203,7 +203,7 @@ char* stpcpy(char* restrict d, const char* restrict s)
     return d;
 }
 
-char* stpncpy(char* restrict d, const char* restrict s, size_t n)
+char* stpncpy(char* restrict d, const char* s, size_t n)
 {
     typedef size_t __attribute__((__may_alias__)) word;
     word* wd;

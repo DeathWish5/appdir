@@ -10,7 +10,6 @@ uint64 sys_write(int fd, uint64 va, uint len) {
         return -1;
     struct proc *p = curr_proc();
     char* str = (char*)(walkaddr(p->pagetable, va) | (va & 0xfffULL));
-    printf("str = %p\n", str);
     int size = min(strlen(str), len);
     for(int i = 0; i < size; ++i) {
         console_putchar(str[i]);
@@ -37,11 +36,10 @@ void syscall() {
     struct trapframe *trapframe = p->trapframe;
     int id = trapframe->a7, ret;
     uint64 args[6] = {trapframe->a0, trapframe->a1, trapframe->a2, trapframe->a3, trapframe->a4, trapframe->a5};
-    printf("syscall %d args:%p %p %p %p %p %p\n", id, args[0], args[1], args[2], args[3], args[4], args[5]);
+    trace("syscall %d args:%p %p %p %p %p %p\n", id, args[0], args[1], args[2], args[3], args[4], args[5]);
     switch (id) {
         case SYS_write:
             ret = sys_write(args[0], args[1], args[2]);
-            printf("\n");
             break;
         case SYS_exit:
             ret = sys_exit(args[0]);
@@ -54,8 +52,8 @@ void syscall() {
             break;
         default:
             ret = -1;
-            printf("unknown syscall %d\n", id);
+            warn("unknown syscall %d\n", id);
     }
     trapframe->a0 = ret;
-    printf("syscall ret %d\n", ret);
+    info("syscall ret %d\n", ret);
 }

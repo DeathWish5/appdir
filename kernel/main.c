@@ -15,17 +15,18 @@ void clean_bss() {
         *p = 0;
 }
 
+int debug_level = INFO;
+
 void main() {
     clean_bss();
-    printf("GOGOGO!\n");
     trapinit();
     kinit();
+    procinit();
     kvminit();
     kvminithart();
     batchinit();
-    procinit();
     timerinit();
     run_all_app();
-    printf("start scheduler!\n");
+    info("start scheduler!\n");
     scheduler();
 }
