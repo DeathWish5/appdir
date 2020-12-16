@@ -7,8 +7,7 @@ if __name__ == '__main__':
     apps = os.listdir(TARGET_DIR)
     apps.sort()
     f.write(
-'''
-    .align 4
+'''    .align 4
     .section .data
     .global _app_num
 _app_num:
@@ -32,7 +31,7 @@ _app_names:
     for (idx, app) in enumerate(apps):
         f.write(
 '''
-    .section .data.apps
+    .section .data.app{0}
     .global app_{0}_start
 app_{0}_start:
     .incbin "{1}"

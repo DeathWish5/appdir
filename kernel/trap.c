@@ -76,7 +76,7 @@ void usertrap() {
             exit(-2);
             break;
         case IllegalInstruction:
-            error("IllegalInstruction in application, core dumped.\n");
+            error("IllegalInstruction in application, epc = %p, core dumped.\n", trapframe->epc);
             exit(-3);
             break;
         default:
@@ -107,7 +107,7 @@ void usertrapret() {
 
     // tell trampoline.S the user page table to switch to.
     uint64 satp = MAKE_SATP(curr_proc()->pagetable);
-    info("return to user\n");
+    trace("return to user at %p\n", trapframe->epc);
     uint64 fn = TRAMPOLINE + (userret - trampoline);
     ((void (*)(uint64,uint64))fn)(TRAPFRAME, satp);
 }

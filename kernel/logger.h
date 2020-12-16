@@ -9,10 +9,11 @@ enum LOG_COLOR {
 extern int COLOR[];
 extern const char* LEVEL[];
 extern int debug_level;
+extern int curr_pid;
 
-#define logger(level, fmt, ...) {                                                                    \
-    if(debug_level <= level)                                                                         \
-        printf("\x1b[%dm[%s][%d] "fmt"\x1b[0m", COLOR[level], LEVEL[level], 0, ##__VA_ARGS__);       \
+#define logger(level, fmt, ...) {                                                                           \
+    if(debug_level <= level)                                                                                \
+        printf("\x1b[%dm[%s][%d] "fmt"\x1b[0m", COLOR[level], LEVEL[level], curr_pid, ##__VA_ARGS__);       \
 }
 
 #define info(fmt, ...) \

@@ -11,6 +11,9 @@ else()
     set(ARCH_DIR lib/arch/${ARCH})
 endif()
 
+set(ASM_DIR asm)
+set(BIN_DIR target)
+
 # Toolchain
 set(PREFIX ${ARCH}-linux-musl-)
 
@@ -24,6 +27,8 @@ endif ()
 
 set(CMAKE_ASM_COMPILER      ${PREFIX}gcc)
 set(CMAKE_C_COMPILER        ${PREFIX}gcc)
+set(CMAKE_OBJCOPY           ${PREFIX}objcopy)
+set(CMAKE_OBJDUMP           ${PREFIX}objdump)
 set(CMAKE_RANLIB            ${PREFIX}ranlib)
 set(CMAKE_C_FLAGS           "${CMAKE_C_FLAGS} -fno-builtin -nostdinc -fno-stack-protector -ggdb -Wall")
 set(CMAKE_ASM_FLAGS         ${CMAKE_C_FLAGS})
@@ -45,6 +50,18 @@ foreach(PATH ${SRCS})
     get_filename_component(NAME ${PATH} NAME_WE)
     add_executable(${NAME} ${PATH})
     target_link_libraries(${NAME} ulib)
+    add_custom_command(
+            TARGET ${NAME}
+            POST_BUILD
+            COMMAND mkdir -p ${ASM_DIR}
+            COMMAND ${CMAKE_OBJDUMP} ARGS -d -S $<TARGET_FILE:${NAME}> > ${ASM_DIR}/${NAME}.asm
+    )
+    add_custom_command(
+            TARGET ${NAME}
+            POST_BUILD
+            COMMAND mkdir -p ${BIN_DIR}
+            COMMAND ${CMAKE_OBJCOPY} ARGS -O binary $<TARGET_FILE:${NAME}> ${BIN_DIR}/${NAME}.bin
+    )
 endforeach()
 
 add_custom_command(

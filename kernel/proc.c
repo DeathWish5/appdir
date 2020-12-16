@@ -12,7 +12,7 @@ extern char trampoline[];
 extern char boot_stack[];
 struct proc* current_proc = 0;
 struct proc idle;
-
+int curr_pid = 0;
 
 struct proc* curr_proc() {
     if(current_proc == 0)
@@ -30,7 +30,6 @@ procinit(void)
     }
     idle.kstack = (uint64)boot_stack;
     idle.pid = 0;
-    idle.killed = 0;
 }
 
 int allocpid() {
@@ -57,19 +56,12 @@ proc_pagetable(struct proc *p)
     if((p->trapframe = (struct trapframe *)kalloc()) == 0){
         panic("kalloc\n");
     }
-
     // map the trapframe just below TRAMPOLINE, for trampoline.S.
     if(mappages(pagetable, TRAPFRAME, PGSIZE,
                 (uint64)(p->trapframe), PTE_R | PTE_W) < 0){;
         panic("");
     }
 
-    p->ustack = 0;
-    p->sz = USTACK_SIZE;
-    if(mappages(pagetable, p->ustack, USTACK_SIZE,
-                (uint64)kalloc(), PTE_R | PTE_W | PTE_U) < 0){;
-        panic("");
-    }
     return pagetable;
 }
 
@@ -108,8 +100,10 @@ struct proc* allocproc(void)
 found:
     p->pid = allocpid();
     p->state = USED;
-    p->offset = 0;
-    // An empty user page table.
+    p->sz = 0;
+    p->exit_code = -1;
+    p->parent = 0;
+    p->ustack = 0;
     p->pagetable = proc_pagetable(p);
     if(p->pagetable == 0){
         panic("");
@@ -127,16 +121,20 @@ void
 scheduler(void)
 {
     struct proc *p;
-
     for(;;){
+        int all_done = 1;
         for(p = pool; p < &pool[NPROC]; p++) {
             if(p->state == RUNNABLE) {
+                all_done = 0;
                 p->state = RUNNING;
                 current_proc = p;
-                info("switch to next proc %d\n", p->pid);
+                curr_pid = p->pid;
+                // info("switch to next proc %d\n", p->pid);
                 swtch(&idle.context, &p->context);
             }
         }
+        if(all_done)
+            panic("all apps over\n");
     }
 }
 
@@ -194,18 +192,57 @@ fork(void)
 
 int exec(char* name) {
     int id = get_id_by_name(name);
+    if(id < 0)
+        return -1;
     struct proc *p = curr_proc();
-    uvmfree(p->pagetable, p->sz);
+    proc_freepagetable(p->pagetable, p->sz);
+    p->sz = 0;
+    p->pagetable = proc_pagetable(p);
+    if(p->pagetable == 0){
+        panic("");
+    }
     loader(id, p);
     return 0;
 }
 
+int
+wait(int pid, int* code)
+{
+    struct proc *np;
+    int havekids;
+    struct proc *p = curr_proc();
+
+    for(;;){
+        // Scan through table looking for exited children.
+        havekids = 0;
+        for(np = pool; np < &pool[NPROC]; np++){
+            if(np->state != UNUSED && np->parent == p && (pid <= 0 || np->pid == pid)){
+                havekids = 1;
+                if(np->state == ZOMBIE){
+                    // Found one.
+                    np->state = UNUSED;
+                    pid = np->pid;
+                    *code = np->exit_code;
+                    return pid;
+                }
+            }
+        }
+        if(!havekids){
+            return -1;
+        }
+        p->state = RUNNABLE;
+        sched();
+    }
+}
 
 void exit(int code) {
     struct proc *p = curr_proc();
     p->exit_code = code;
     info("proc %d exit with %d\n", p->pid, code);
     freeproc(p);
-    finished();
+    if(p->parent != 0) {
+        trace("wait for parent to clean\n");
+        p->state = ZOMBIE;
+    }
     sched();
 }

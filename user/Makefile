@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := bin
+.DEFAULT_GOAL := elf
 
 ARCH ?= riscv64
 MODE ?= release
@@ -20,9 +20,9 @@ elf:
 
 bin:
 	@mkdir -p asm
-	@$(foreach elf, $(wildcard build/$(ARCH)/*), $(OBJDUMP) $(elf) -S -d > $(patsubst build/$(ARCH)/%, asm/%.asm, $(elf));)
+	@$(CP) build/asm/* asm
 	@mkdir -p $(out_dir)
-	@$(foreach elf, $(wildcard build/$(ARCH)/*), $(OBJCOPY) $(elf) --strip-all -O binary $(patsubst build/$(ARCH)/%, $(out_dir)/%.bin, $(elf));)
+	@$(CP) build/target/* target
 
 clean:
 	@rm -rf build target asm

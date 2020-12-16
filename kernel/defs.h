@@ -54,7 +54,6 @@ void syscall();
 void swtch(struct context *, struct context *);
 
 // loader.c
-int finished();
 void batchinit();
 int run_all_app();
 int get_id_by_name(char* name);
@@ -67,6 +66,9 @@ void procinit(void);
 void scheduler(void) __attribute__((noreturn));
 void sched(void);
 void yield(void);
+int fork(void);
+int exec(char*);
+int wait(int, int*);
 struct proc *allocproc();
 
 // kalloc.c
@@ -88,14 +90,17 @@ void uvmfree(pagetable_t, uint64);
 void uvmunmap(pagetable_t, uint64, uint64, int);
 void uvmclear(pagetable_t, uint64);
 uint64 walkaddr(pagetable_t, uint64);
+uint64 useraddr(pagetable_t, uint64);
 int copyout(pagetable_t, uint64, char *, uint64);
 int copyin(pagetable_t, char *, uint64, uint64);
 int copyinstr(pagetable_t, char *, uint64, uint64);
 void debugwalk(pagetable_t, int);
+
 // timer.c
 uint64 get_cycle();
 void timerinit();
 void set_next_timer();
+uint64 get_time_ms();
 
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)

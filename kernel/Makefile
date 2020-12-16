@@ -34,14 +34,16 @@ LDFLAGS = -z max-page-size=4096
 link_app.o: link_app.S
 link_app.S: pack.py
 	@$(PY) pack.py
+kernel_app.ld: kernelld.py
+	@$(PY) kernelld.py
 
-$K/kernel: $(OBJS) $K/kernel.ld link_app.S
-	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS)
+$K/kernel: $(OBJS) kernel_app.ld link_app.S
+	$(LD) $(LDFLAGS) -T $K/kernel_app.ld -o $K/kernel $(OBJS)
 	$(OBJDUMP) -d $K/kernel > $K/kernel.asm
 	$(OBJDUMP) -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
 
 clean: 
-	@rm -f *.o *.d *.sym *.asm $K/kernel $K/link_app.S
+	@rm -f *.o *.d *.sym *.asm $K/kernel $K/link_app.S $K/kernel_app.ld
 
 ifndef CPUS
 CPUS := 1
