@@ -87,7 +87,10 @@ walkaddr(pagetable_t pagetable, uint64 va) {
 }
 
 uint64 useraddr(pagetable_t pagetable, uint64 va) {
-    return walkaddr(pagetable, va) | (va & 0xFFFULL);
+    uint64 page = walkaddr(pagetable, va);
+    if(page == 0)
+        return 0;
+    return pagae | (va & 0xFFFULL);
 }
 
 // add a mapping to the kernel page table.
@@ -245,17 +248,6 @@ void uvmfree(pagetable_t pagetable, uint64 sz) {
     freewalk(pagetable);
 }
 
-// mark a PTE invalid for user access.
-// used by exec for the user stack guard page.
-void uvmclear(pagetable_t pagetable, uint64 va) {
-    pte_t *pte;
-
-    pte = walk(pagetable, va, 0);
-    if (pte == 0)
-        panic("uvmclear");
-    *pte &= ~PTE_U;
-}
-
 int uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
 {
     pte_t *pte;
@@ -285,43 +277,32 @@ int uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     return -1;
 }
 
-// Copy a null-terminated string from user to kernel.
-// Copy bytes to dst from virtual address srcva in a given page table,
-// until a '\0', or max.
-// Return 0 on success, -1 on error.
-int copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max) {
-    uint64 n, va0, pa0;
-    int got_null = 0;
-
-    while (got_null == 0 && max > 0) {
-        va0 = PGROUNDDOWN(srcva);
-        pa0 = walkaddr(pagetable, va0);
-        if (pa0 == 0)
-            return -1;
-        n = PGSIZE - (srcva - va0);
-        if (n > max)
-            n = max;
-
-        char *p = (char *) (pa0 + (srcva - va0));
-        while (n > 0) {
-            if (*p == '\0') {
-                *dst = '\0';
-                got_null = 1;
-                break;
-            } else {
-                *dst = *p;
-            }
-            --n;
-            --max;
-            p++;
-            dst++;
-        }
-
-        srcva = va0 + PGSIZE;
+int copyin(pagetable_t pagetable, uint64 va, char* dst, int len) {
+    uint64 pa, size, w;
+    int write = 0;
+    while(write < len) {
+        pa = useraddr(pagetable, va);
+        if(pa <= 0)
+            break;
+        size = PGSIZE - (pa & 0xFFF);
+        w = MIN(size, len - write);
+        memmove(dst, const char*(pa), w);
+        write += w;
     }
-    if (got_null) {
-        return 0;
-    } else {
-        return -1;
+    return write;
+}
+
+int copyout(pagetable_t pagetable, uint64 va, const char* src, int len) {
+    uint64 pa, size, w;
+    int write = 0;
+    while(write < len) {
+        pa = useraddr(pagetable, va);
+        if(pa <= 0)
+            break;
+        size = PGSIZE - (pa & 0xFFF);
+        w = MIN(size, len - write);
+        memmove(const char*(pa), src, w);
+        write += w;
     }
+    return write;
 }

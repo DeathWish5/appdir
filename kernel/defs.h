@@ -29,7 +29,7 @@ void consoleinit(void);
 void consputc(int);
 
 // logger.c
-void printf(const char*, ...);
+void printf(const char *, ...);
 #include "logger.h"
 
 // trap.c
@@ -56,8 +56,8 @@ void swtch(struct context *, struct context *);
 // loader.c
 void batchinit();
 int run_all_app();
-int get_id_by_name(char* name);
-void loader(int, void*);
+int get_id_by_name(char *name);
+void loader(int, void *);
 
 // proc.c
 struct proc *curr_proc();
@@ -67,8 +67,8 @@ void scheduler(void) __attribute__((noreturn));
 void sched(void);
 void yield(void);
 int fork(void);
-int exec(char*);
-int wait(int, int*);
+int exec(char *);
+int wait(int, int *);
 struct proc *allocproc();
 
 // kalloc.c
@@ -88,19 +88,23 @@ uint64 uvmdealloc(pagetable_t, uint64, uint64);
 int uvmcopy(pagetable_t, pagetable_t, uint64);
 void uvmfree(pagetable_t, uint64);
 void uvmunmap(pagetable_t, uint64, uint64, int);
-void uvmclear(pagetable_t, uint64);
 uint64 walkaddr(pagetable_t, uint64);
 uint64 useraddr(pagetable_t, uint64);
-int copyout(pagetable_t, uint64, char *, uint64);
-int copyin(pagetable_t, char *, uint64, uint64);
-int copyinstr(pagetable_t, char *, uint64, uint64);
 void debugwalk(pagetable_t, int);
+int copyin(pagetable_t, uint64, char*, int);
+int copyout(pagetable_t, uint64, const char*, int);
 
 // timer.c
 uint64 get_cycle();
 void timerinit();
 void set_next_timer();
 uint64 get_time_ms();
+
+// pipe.c
+int pipealloc();
+void pipeclose(struct pipe *, int);
+int piperead(struct pipe *, uint64, int);
+int pipewrite(struct pipe *, uint64, int);
 
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)

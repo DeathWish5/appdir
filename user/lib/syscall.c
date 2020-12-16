@@ -11,12 +11,12 @@ int close(int fd) {
     return syscall(SYS_close, fd);
 }
 
-ssize_t read(int fd, void *buf, size_t len) {
-    return syscall(SYS_read, fd, buf, len);
+ssize_t read(int fd, void *buf) {
+    return syscall(SYS_read, fd, buf);
 }
 
-ssize_t write(int fd, const void *buf, size_t len) {
-    return syscall(SYS_write, fd, buf, len);
+ssize_t write(int fd, const void *buf) {
+    return syscall(SYS_write, fd, buf);
 }
 
 int getpid(void) {

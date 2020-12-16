@@ -11,14 +11,15 @@ int getchar() {
 
 int putchar(int c)
 {
-    char byte = c;
-    return write(stdout, &byte, 1);
+    static char put[2] = {0, 0};
+    put[0] = c;
+    return write(stdout, put);
 }
 
 int puts(const char* s)
 {
     int r;
-    r = -(write(stdout, s, strlen(s)) < 0 || putchar('\n') < 0);
+    r = -(write(stdout, s) < 0 || putchar('\n') < 0);
     return r;
 }
 
