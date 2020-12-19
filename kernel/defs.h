@@ -1,19 +1,12 @@
 #ifndef __DEF_H__
 #define __DEF_H__
 
-typedef unsigned int uint;
-typedef unsigned short ushort;
-typedef unsigned char uchar;
-typedef unsigned char uint8;
-typedef unsigned short uint16;
-typedef unsigned int uint32;
-typedef unsigned long uint64;
-typedef uint64 pte_t;
-typedef uint64 pde_t;
-typedef uint64 *pagetable_t;// 512 PTEs
+#include "types.h"
 
+struct file;
 struct context;
 struct proc;
+struct pipe;
 
 // panic.c
 void loop();
@@ -70,6 +63,7 @@ int fork(void);
 int exec(char *);
 int wait(int, int *);
 struct proc *allocproc();
+int fdalloc(struct file *);
 
 // kalloc.c
 void *kalloc(void);
@@ -91,8 +85,8 @@ void uvmunmap(pagetable_t, uint64, uint64, int);
 uint64 walkaddr(pagetable_t, uint64);
 uint64 useraddr(pagetable_t, uint64);
 void debugwalk(pagetable_t, int);
-int copyin(pagetable_t, uint64, char*, int);
-int copyout(pagetable_t, uint64, const char*, int);
+int copyin(pagetable_t, uint64, char*, uint64);
+int copyout(pagetable_t, uint64, const char*, uint64);
 
 // timer.c
 uint64 get_cycle();
@@ -101,10 +95,14 @@ void set_next_timer();
 uint64 get_time_ms();
 
 // pipe.c
-int pipealloc();
+int pipealloc(struct file *, struct file *);
 void pipeclose(struct pipe *, int);
 int piperead(struct pipe *, uint64, int);
 int pipewrite(struct pipe *, uint64, int);
+
+// file.c
+void fileclose(struct file *);
+struct file* filealloc();
 
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)

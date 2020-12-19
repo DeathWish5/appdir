@@ -90,7 +90,7 @@ uint64 useraddr(pagetable_t pagetable, uint64 va) {
     uint64 page = walkaddr(pagetable, va);
     if(page == 0)
         return 0;
-    return pagae | (va & 0xFFFULL);
+    return page | (va & 0xFFFULL);
 }
 
 // add a mapping to the kernel page table.
@@ -277,31 +277,31 @@ int uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     return -1;
 }
 
-int copyin(pagetable_t pagetable, uint64 va, char* dst, int len) {
+int copyin(pagetable_t pagetable, uint64 va, char* dst, uint64 len) {
     uint64 pa, size, w;
     int write = 0;
     while(write < len) {
-        pa = useraddr(pagetable, va);
+        pa = useraddr(pagetable, va + write);
         if(pa <= 0)
             break;
         size = PGSIZE - (pa & 0xFFF);
         w = MIN(size, len - write);
-        memmove(dst, const char*(pa), w);
+        memmove(dst + write, (const void*)pa, w);
         write += w;
     }
     return write;
 }
 
-int copyout(pagetable_t pagetable, uint64 va, const char* src, int len) {
+int copyout(pagetable_t pagetable, uint64 va, const char* src, uint64 len) {
     uint64 pa, size, w;
     int write = 0;
     while(write < len) {
-        pa = useraddr(pagetable, va);
+        pa = useraddr(pagetable, va + write);
         if(pa <= 0)
             break;
         size = PGSIZE - (pa & 0xFFF);
         w = MIN(size, len - write);
-        memmove(const char*(pa), src, w);
+        memmove((void*)pa, src + write, w);
         write += w;
     }
     return write;

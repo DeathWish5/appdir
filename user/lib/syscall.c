@@ -11,12 +11,12 @@ int close(int fd) {
     return syscall(SYS_close, fd);
 }
 
-ssize_t read(int fd, void *buf) {
-    return syscall(SYS_read, fd, buf);
+ssize_t read(int fd, void *buf, unsigned long long len) {
+    return syscall(SYS_read, fd, buf, len);
 }
 
-ssize_t write(int fd, const void *buf) {
-    return syscall(SYS_write, fd, buf);
+ssize_t write(int fd, const void *buf, unsigned long long len) {
+    return syscall(SYS_write, fd, buf, len);
 }
 
 int getpid(void) {
@@ -53,4 +53,8 @@ int sleep(unsigned long long time) {
         sched_yield();
     }
     return 0;
+}
+
+int pipe(void* p) {
+    return syscall(SYS_pipe2, p);
 }

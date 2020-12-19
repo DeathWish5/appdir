@@ -1,13 +1,12 @@
 #include "riscv.h"
 #include "defs.h"
 #include "proc.h"
-#include "pipe.c"
+#include "file.h"
 
 int
-pipealloc()
+pipealloc(struct file *f0, struct file *f1)
 {
     struct pipe *pi;
-
     pi = 0;
     if((pi = (struct pipe*)kalloc()) == 0)
         goto bad;
@@ -15,8 +14,15 @@ pipealloc()
     pi->writeopen = 1;
     pi->nwrite = 0;
     pi->nread = 0;
+    f0->type = FD_PIPE;
+    f0->readable = 1;
+    f0->writable = 0;
+    f0->pipe = pi;
+    f1->type = FD_PIPE;
+    f1->readable = 0;
+    f1->writable = 1;
+    f1->pipe = pi;
     return 0;
-
 bad:
     if(pi)
         kfree((char*)pi);
@@ -37,50 +43,50 @@ pipeclose(struct pipe *pi, int writable)
 }
 
 int
-pipewrite(struct pipe *pi, uint64 addr, int n)s
+pipewrite(struct pipe *pi, uint64 addr, int n)
 {
-    int i = 0;
-    struct proc *pr = curr_proc();
-
-    acquire(&pi->lock);
-    while(i < n){
-        if(pi->readopen == 0 || pr->killed){
-            release(&pi->lock);
+    int w = 0;
+    uint64 size;
+    struct proc *p = curr_proc();
+    if(n <= 0) {
+        panic("invalid read num");
+    }
+    while(w < n){
+        if(pi->readopen == 0){
             return -1;
         }
         if(pi->nwrite == pi->nread + PIPESIZE){ //DOC: pipewrite-full
-            wakeup(&pi->nread);
-            sleep(&pi->nwrite, &pi->lock);
+            yield();
         } else {
-            char ch;
-            if(copyin(pr->pagetable, &ch, addr + i, 1) == -1)
-                break;
-            pi->data[pi->nwrite++ % PIPESIZE] = ch;
-            i++;
+            size = MIN(MIN(n - w, pi->nread + PIPESIZE - pi->nwrite), PIPESIZE - (pi->nwrite % PIPESIZE));
+            size = copyin(p->pagetable, addr + w, &pi->data[pi->nwrite % PIPESIZE], size);
+            pi->nwrite += size;
+            w += size;
         }
     }
-    wakeup(&pi->nread);
-    release(&pi->lock);
-
-    return i;
+    return w;
 }
 
 int
 piperead(struct pipe *pi, uint64 addr, int n)
 {
-    int r = 0, size = -1;
+    int r = 0;
+    uint64 size = -1;
     struct proc *p = curr_proc();
-    char ch;
-    char* loc
-
-    while(pi->nread == pi->nwrite && pi->writeopen) {
-        yield();
+    if(n <= 0) {
+        panic("invalid read num");
+    }
+    while(pi->nread == pi->nwrite) {
+        if(pi->writeopen)
+            yield();
+        else
+            return -1;
     }
     while(r < n && size != 0) {  //DOC: piperead-copy
         if(pi->nread == pi->nwrite)
             break;
         size = MIN(MIN(n - r, pi->nwrite - pi->nread), PIPESIZE - (pi->nread % PIPESIZE));
-        size = copyin(p->pagetable, addr + r, pi->data[pi->nread % PIPESIZE], size);
+        size = copyout(p->pagetable, addr + r, &pi->data[pi->nread % PIPESIZE], size);
         pi->nread += size;
         r += size;
     }

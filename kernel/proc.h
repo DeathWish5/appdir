@@ -3,7 +3,9 @@
 #define USTACK_SIZE (4096)
 #define TRAPFRAME_SIZE (4096)
 
-#include "pipe.h"
+#include "file.h"
+
+#define FD_MAX (16)
 
 struct context {
     uint64 ra;
@@ -41,5 +43,5 @@ struct proc {
     struct proc *parent;         // Parent process
     uint64 exit_code;
 
-    struct pipe* files[16];
+    struct file* files[16];
 };

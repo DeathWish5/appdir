@@ -1,21 +1,16 @@
 #include "defs.h"
 
-extern char stext[];
-extern char etext[];
-extern char srodata[];
-extern char erodata[];
-extern char sdata[];
-extern char edata[];
 extern char sbss[];
 extern char ebss[];
+
+int debug_level;
 
 void clean_bss() {
     char* p;
     for(p = sbss; p < ebss; ++p)
         *p = 0;
+    debug_level = INFO;
 }
-
-int debug_level = INFO;
 
 void main() {
     clean_bss();

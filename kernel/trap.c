@@ -38,7 +38,7 @@ void unknown_trap() {
 void usertrap() {
     set_kerneltrap();
     struct trapframe *trapframe = curr_proc()->trapframe;
-
+    trace("usertrap from %p\n", trapframe->epc);
     if ((r_sstatus() & SSTATUS_SPP) != 0)
         panic("usertrap: not from user mode");
 
